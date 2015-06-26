@@ -1,10 +1,12 @@
-package com.beastserver
+package com.beastserver.boot
 
-import akka.actor.{Props, ActorSystem}
+import akka.actor.{ActorSystem, Props}
 import akka.io.IO
-import akka.util.Timeout
-import spray.can.Http
 import akka.pattern.ask
+import akka.util.Timeout
+import com.beastserver.MainServiceActor
+import spray.can.Http
+
 import scala.concurrent.duration._
 
 /**
