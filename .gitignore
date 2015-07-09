@@ -3,7 +3,6 @@
 
 # sbt specific
 .cache
-.history
 .lib/
 dist/*
 target/
@@ -20,7 +19,6 @@ project/plugins/project/
 .idea/
 *.ipr
 *.iws
-*.iml
 out/
 com_crashlytics_export_strings.xml
 
@@ -52,3 +50,7 @@ nb-configuration.xml
 ## OS Specific
 .DS_Store
 Thumbs.db
+*.bat
+
+## Generated code specific
+!target/scala-2.11/src_managed/slick/*

@@ -12,7 +12,7 @@ import scala.concurrent.duration._
 /**
  * Created by DeBalid on 21.04.2015.
  */
-object Boot extends App
+object Boot extends App with Config
 {
   implicit val system = ActorSystem()
 
@@ -20,5 +20,5 @@ object Boot extends App
 
   implicit val timeout = Timeout(5.seconds)
 
-  IO(Http) ? Http.Bind(service, interface = "localhost", port = 80)
+  IO(Http) ? Http.Bind(service, beastHost, beastPort)
 }
