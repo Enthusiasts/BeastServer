@@ -1,13 +1,19 @@
 *.class
 *.log
 
-# sbt specific
+# sbt specific and slick generated exclude
 .cache
 .lib/
 dist/*
-target/
+project/target/
+target/resolution-cache/
+target/streams/
+target/.history
+target/**/classes/
+target/**/*.jar
+target/**/src_managed/*
+!target/**/src_managed/slick
 lib_managed/
-src_managed/
 project/boot/
 project/plugins/project/
 
@@ -51,6 +57,3 @@ nb-configuration.xml
 .DS_Store
 Thumbs.db
 *.bat
-
-## Generated code specific
-!target/scala-2.11/src_managed/slick/*
