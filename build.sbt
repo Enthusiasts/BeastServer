@@ -25,29 +25,28 @@ libraryDependencies ++= {
 //Look at https://github.com/slick/slick-codegen-example/
 //Includes db settings for code gen
 //Note: should use the same driver in the rest of app
-lazy val genTables = inputKey[Unit]("Generates slick tables. The format is \"genTables <driver:url:port ><db> <user> <pswd>\"")
-
-genTables := {
-  import sbt.complete.DefaultParsers._
-
-  //parsing inputs
-  val args: Seq[String] = spaceDelimited("<arg>").parsed
-  require(args.size == 4)
+sourceGenerators in Compile += Def.task{
+  //getting inputs
+  val args = IO.readLines(file(".gen"))
+  require(args.size == 2)
 
   //some settings
-  val outputDir = (sourceManaged.value / "slick").getPath
-  val url = args.head + args(1)
+  val outputDir = (sourceManaged.value / "main").getPath
+  val url = "jdbc:postgresql://localhost:5432/beast"
   val jdbcDriver = "org.postgresql.driver"
   val slickDriver = "slick.driver.PostgresDriver"
-  val pkg = "com.beastserver.dao"
+  val pkg = "com.beastserver.gen"
 
   //generating
   toError{
     (runner in Compile).value.run(
       "slick.codegen.SourceCodeGenerator",
       (dependencyClasspath in Compile).value.files,
-      Array(slickDriver, jdbcDriver, url, outputDir, pkg, args(2), args(3)),
+      Array(slickDriver, jdbcDriver, url, outputDir, pkg, args.head, args(1)),
       streams.value.log
     )
   }
-}
+
+  val fname = outputDir + "/com/beastserver/gen/Tables.scala"
+  Seq(file(fname))
+}.taskValue

@@ -10,7 +10,7 @@ import spray.can.Http
 import scala.concurrent.duration._
 
 /**
- * Created by DeBalid on 21.04.2015.
+ * debalid on 21.04.2015.
  */
 object Boot extends App with Config
 {
