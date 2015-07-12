@@ -1,17 +1,17 @@
 package com.beastserver
 
-import akka.actor.{ActorRefFactory, Actor}
-import spray.httpx.marshalling.ToResponseMarshallable
-import spray.routing._
+import akka.actor.Actor
+import com.beastserver.route.UniversityRoute
+import spray.http.MediaTypes._
 import spray.http._
-import MediaTypes._
+import spray.routing._
 
 /**
- * Created by DeBalid on 21.04.2015.
+ * DeBalid on 21.04.2015.
  */
-class MainServiceActor extends Actor with MainService
+class MainServiceActor extends Actor /*with MainService*/ with UniversityRoute
 {
-  def receive = runRoute(mainRoute)
+  def receive = runRoute(route)
 
   def actorRefFactory = context
 }

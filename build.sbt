@@ -17,7 +17,9 @@ libraryDependencies ++= {
     "com.typesafe.akka"   %%  "akka-testkit"  % akkaV   % "test",
     "com.typesafe.slick"  %%  "slick"         % "3.0.0",
     "com.typesafe.slick"  %% "slick-codegen"  % "3.0.0",
-    "org.postgresql"      %   "postgresql"    % "9.4-1201-jdbc41"
+    "org.postgresql"      %   "postgresql"    % "9.4-1201-jdbc41",
+    "org.slf4j"           % "slf4j-nop"       % "1.6.4",
+    "org.json4s"          %% "json4s-native"  % "3.2.10"
   )
 }
 
