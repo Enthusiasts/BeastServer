@@ -1,10 +1,11 @@
 package com.beastserver.boot
 
-import akka.actor.{ActorSystem, Props}
+import akka.actor.ActorSystem
 import akka.io.IO
 import akka.pattern.ask
 import akka.util.Timeout
-import com.beastserver.MainServiceActor
+import com.beastserver.RoutingActor
+import com.beastserver.core.MediatorActor
 import spray.can.Http
 
 import scala.concurrent.duration._
@@ -16,7 +17,8 @@ object Boot extends App with Config
 {
   implicit val system = ActorSystem()
 
-  val service = system.actorOf(Props[MainServiceActor], "main-service")
+  val mediator = system.actorOf(MediatorActor.props(), "mediator-service")
+  val service = system.actorOf(RoutingActor.props(mediator), "routing-service")
 
   implicit val timeout = Timeout(5.seconds)
 

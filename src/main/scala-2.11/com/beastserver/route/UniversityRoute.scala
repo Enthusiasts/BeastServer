@@ -1,25 +1,27 @@
 package com.beastserver.route
 
 import akka.actor.{Actor, Props}
-import com.beastserver.dal.{DBRouteeActor, UniversityDAO}
+import com.beastserver.core.{MediatorActor, PerRequestToMediator, UniversityMediator}
 import spray.http.MediaTypes._
-import spray.routing.HttpService
+import spray.routing.{HttpService, RequestContext}
 
 /**
  * DeBalid on 12.07.2015.
  */
-trait UniversityRoute extends HttpService with PerRequestCreator {
-  this: Actor =>
+trait UniversityRoute extends HttpService {
+  this: Actor with PerRequestToMediator =>
 
-  val route = pathPrefix("university")
+  val universityRoute = pathPrefix("university")
   {
     path(IntNumber) {
       id =>
         //Get that exactly
         get {
-          //respondWithMediaType(`text/html`) { complete{<html><body>pfff</body></html>}}
-          //TODO: remove DBRoutee Actor
-          case any => createPerRequest(any, context.actorOf(Props(new DBRouteeActor)), UniversityDAO.GetSequence(3))
+          //Actually creates per-request actor with current request context to complete
+          //Then this per-request actor sends given message to mediator-actor
+          toMediator{
+            UniversityMediator.GetExactlyOne(id)
+          }
         }~
         //Update that exactly
         post {
@@ -35,7 +37,8 @@ trait UniversityRoute extends HttpService with PerRequestCreator {
       count =>
         //Get a number of these
         get {
-          respondWithMediaType(`text/html`) { complete{<html><body>pfff to all</body></html>}}
+          case any: RequestContext =>
+            createPerRequest(any, context.actorOf(Props(new MediatorActor)), UniversityMediator.GetSequence(count))
         }
     } ~
     pathEndOrSingleSlash
