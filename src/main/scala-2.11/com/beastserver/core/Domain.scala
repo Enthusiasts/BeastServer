@@ -20,3 +20,5 @@ trait SuccessResponse extends RestResponse
 case class FailureMessage(reason: String) extends RestResponse
 case class InternalErrorFailure() extends  RestResponse
 case class NotFoundFailure() extends RestResponse
+
+//TODO: think about generalizing rest responses
