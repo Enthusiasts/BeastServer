@@ -4,9 +4,6 @@ import akka.actor.Actor
 import akka.pattern.pipe
 import com.beastserver.core.Models.University
 import com.beastserver.dao.UniversityDAO
-import com.beastserver.route.PerRequest._
-
-import scala.concurrent.Future
 
 /**
  * debal on 13.07.2015.
@@ -28,29 +25,29 @@ trait UniversityMediator
   //Helps avoid multiple inheritance
   this: Actor with Mediator =>
 
-  import com.beastserver.core.UniversityMediator._
-
   private lazy val dao = new UniversityDAO()
+
+  import UniversityMediator._
 
   def handleUniversity: Receive = {
 
     case GetSequence(x: Int) =>
       if (x > 0) {
-        val resp: Future[RestResponse] = dao.getSequence(x)
-          .map(Sequence)
-          .recover{ case any => InternalErrorFailure() }
-        resp pipeTo sender()
+        dao.getSequence(x) map {
+          Sequence
+        } recover{
+          case any => InternalErrorFailure()
+        } pipeTo sender()
       }
       else sender() ! NotFoundFailure()
 
     case GetExactlyOne(id: Int) =>
       if (id > 0) {
-        val resp: Future[RestResponse] = dao.getExactlyOne(id)
-          .map{
+        dao.getExactlyOne(id) map {
           _.fold[RestResponse](NotFoundFailure())(ExactlyOne)
-        }
-          .recover { case any => InternalErrorFailure() }
-        resp pipeTo sender()
+        } recover {
+          case any => InternalErrorFailure()
+        } pipeTo sender()
       }
       else sender() ! NotFoundFailure()
   }

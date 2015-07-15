@@ -1,7 +1,6 @@
 package com.beastserver.core
 
 import akka.actor.{Actor, ActorRef, Props}
-import com.beastserver.route.PerRequest.RestRequest
 import com.beastserver.route.PerRequestCreator
 import slick.driver.PostgresDriver.api._
 import spray.routing.Route
@@ -16,6 +15,7 @@ trait Mediator
 {
   implicit def db: Database
   implicit def execContext: ExecutionContext
+
 }
 
 //Trait to implement some sugar in routes layer
@@ -37,12 +37,14 @@ object MediatorActor
   def props(): Props = Props(classOf[MediatorActor])
 }
 
-class MediatorActor extends Actor with Mediator with UniversityMediator
+class MediatorActor extends Actor with Mediator
+with UniversityMediator
+with MediaMediator
 {
   final lazy val db = Database.forConfig("db")
   final lazy val execContext = context.dispatcher
 
-  def receive = handleUniversity orElse stop
+  def receive = handleUniversity orElse handleMedia orElse stop
 
   final def stop: Receive = {
     case MediatorActor.Stop =>

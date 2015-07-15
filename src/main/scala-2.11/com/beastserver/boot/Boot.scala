@@ -17,7 +17,9 @@ object Boot extends App with Config
 {
   implicit val system = ActorSystem()
 
+  //Responsible for db connection
   val mediator = system.actorOf(MediatorActor.props(), "mediator-service")
+  //Responsible for routing (suprisingly, I know)
   val service = system.actorOf(RoutingActor.props(mediator), "routing-service")
 
   implicit val timeout = Timeout(5.seconds)

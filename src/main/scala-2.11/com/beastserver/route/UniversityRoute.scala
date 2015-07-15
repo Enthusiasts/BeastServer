@@ -1,7 +1,7 @@
 package com.beastserver.route
 
 import akka.actor.{Actor, Props}
-import com.beastserver.core.{MediatorActor, PerRequestToMediator, UniversityMediator}
+import com.beastserver.core._
 import spray.http.MediaTypes._
 import spray.routing.{HttpService, RequestContext}
 
@@ -10,6 +10,8 @@ import spray.routing.{HttpService, RequestContext}
  */
 trait UniversityRoute extends HttpService {
   this: Actor with PerRequestToMediator =>
+
+  import com.beastserver.core.UniversityMediator._
 
   val universityRoute = pathPrefix("university")
   {
@@ -20,7 +22,7 @@ trait UniversityRoute extends HttpService {
           //Actually creates per-request actor with current request context to complete
           //Then this per-request actor sends given message to mediator-actor
           toMediator{
-            UniversityMediator.GetExactlyOne(id)
+            GetExactlyOne(id)
           }
         }~
         //Update that exactly
@@ -38,7 +40,7 @@ trait UniversityRoute extends HttpService {
         //Get a number of these
         get {
           case any: RequestContext =>
-            createPerRequest(any, context.actorOf(Props(new MediatorActor)), UniversityMediator.GetSequence(count))
+            createPerRequest(any, context.actorOf(Props(new MediatorActor)), GetSequence(count))
         }
     } ~
     pathEndOrSingleSlash

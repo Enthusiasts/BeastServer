@@ -2,6 +2,7 @@ package com.beastserver.route
 
 import akka.actor.{Actor, ActorRef, Props, ReceiveTimeout}
 import com.beastserver.boot.Config
+import com.beastserver.core._
 import org.json4s.DefaultFormats
 import spray.http.{StatusCode, StatusCodes}
 import spray.httpx.Json4sSupport
@@ -14,8 +15,6 @@ import spray.routing.{RequestContext, Route}
 
 trait PerRequest extends Actor with Config with Json4sSupport
 {
-  import PerRequest._
-
   //Request context this route-actor should complete
   def requestContext: RequestContext
   //Core-actor it is bounded to
@@ -46,16 +45,6 @@ trait PerRequest extends Actor with Config with Json4sSupport
 
 object PerRequest
 {
-  //Wrappers for rest messages
-  trait RestRequest
-  trait RestResponse
-
-  //Actually possible rest responses
-  trait SuccessResponse extends RestResponse
-  case class FailureMessage(reason: String) extends RestResponse
-  case class InternalErrorFailure() extends  RestResponse
-  case class NotFoundFailure() extends RestResponse
-
   //Per-request actor implementations
   case class WithActorRef(requestContext: RequestContext, target: ActorRef, message: RestRequest) extends PerRequest
 

@@ -1,6 +1,7 @@
 package com.beastserver.route
 
-import spray.http.MediaTypes._
+import akka.actor.Actor
+import com.beastserver.core.PerRequestToMediator
 import spray.routing.HttpService
 
 /**
@@ -8,9 +9,15 @@ import spray.routing.HttpService
  */
 trait MediaRoute extends HttpService
 {
-  val route = path("media" / IntNumber) { uuid =>
+  this: Actor with PerRequestToMediator =>
+
+  import com.beastserver.core.MediaMediator._
+
+  val mediaRoute = path("media" / Rest) { uuid =>
     get {
-      respondWithMediaType(`text/html`) { complete {<html><body>placeholder</body></html>} }
+      toMediator {
+        GetExactlyOne(uuid)
+      }
     }
   }
 }
