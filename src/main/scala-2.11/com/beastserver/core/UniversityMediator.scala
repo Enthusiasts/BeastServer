@@ -36,7 +36,7 @@ trait UniversityMediator
 
   def handleUniversity: Receive = {
 
-    case GetSequence(x: Int) =>
+    /*case GetSequence(x: Int) =>
       if (x > 0) {
         dao.getSequence(x) map {
           Sequence
@@ -44,33 +44,67 @@ trait UniversityMediator
           case any => InternalErrorFailure()
         } pipeTo sender()
       }
-      else sender() ! NotFoundFailure()
+      else sender() ! NotFoundFailure()*/
 
     case GetExactlyOne(id: Int) =>
-      if (id > 0) {
+      if (id >= 0) {
         /*dao.getExactlyOne(id) map {
           _.fold[RestResponse](NotFoundFailure())(ExactlyOne)*/
         val uuidFuture = Future { UUID.randomUUID() }
         val urlFuture = uuidFuture map {
-          x => Base64.getEncoder.encode {
+          x => new String(Base64.getEncoder.encode {
             ByteBuffer.allocate(16).putLong(x.getMostSignificantBits).putLong(x.getLeastSignificantBits).array()
-          }
+          })
         }
         val result = for {
           uuid <- uuidFuture
-          opt <- dao.getOneTest(id, uuid)
+          opt <- dao.getExactlyOne(id, uuid)
           url <- urlFuture
         } yield {
           opt map {
             case (x, y, z) =>
-              University(x, y, url.toString)
+              University(x, y, url)
           }
         }
 
         result map {
           _.fold[RestResponse](NotFoundFailure())(ExactlyOne)
         } recover {
-          case any => InternalErrorFailure()
+          case any => any.printStackTrace();InternalErrorFailure()
+        } pipeTo sender()
+      }
+      else sender() ! NotFoundFailure()
+
+      //TODO: think about generalizing
+    case GetSequence(count: Int) =>
+      if (count > 0) {
+        /*dao.getExactlyOne(id) map {
+          _.fold[RestResponse](NotFoundFailure())(ExactlyOne)*/
+        val uuidsFuture: Future[Seq[UUID]] = Future { (0 until count) map (x => UUID.randomUUID) }
+
+        val urlsFuture = uuidsFuture map {
+          seq => seq map {
+            x => new String(Base64.getEncoder.encode {
+              ByteBuffer.allocate(16).putLong(x.getMostSignificantBits).putLong(x.getLeastSignificantBits).array()
+            })
+          }
+        }
+
+        val result = for {
+          uuids <- uuidsFuture
+          seq <- dao.getSequenseTest(uuids)
+          urls <- urlsFuture
+        } yield {
+            seq zip urls map {
+              case (uni, url) =>
+                University(uni._1, uni._2, url)
+            }
+          }
+
+        result map {
+          Sequence
+        } recover {
+          case any => any.printStackTrace();InternalErrorFailure()
         } pipeTo sender()
       }
       else sender() ! NotFoundFailure()

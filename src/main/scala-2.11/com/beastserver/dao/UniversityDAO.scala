@@ -1,6 +1,6 @@
 package com.beastserver.dao
 
-import java.util.{Base64, UUID}
+import java.util.{NoSuchElementException, Base64, UUID}
 
 import com.beastserver.core.Models._
 import com.beastserver.gen._
@@ -34,50 +34,59 @@ class UniversityDAO (implicit val db: Database, implicit val ex: ExecutionContex
     }
   }
 
-  def getExactlyOne(id: Int): Future[Option[University]] = db.run{
-    getUniversityQuery(id).result
-  } map {
-    _ map {
-      case (idUni, title, img) => University(idUni, title.fold(""){x => x}, title.fold(""){x => x})
-    }
-  } map {_.headOption}
-
-  //TODO: handle transactions
-  /*def insertMediaCache(uniId: Int, imgUUID: UUID) = {
-    for {
-      uni <- Tables.University if uni.id === uniId
-    } yield uni.mediaId
-  }.result andThen {
-    DBIO.seq {
-      Tables.MediaCache += Tables.MediaCacheRow(imgUUID, id)
-    }
-  }.transactionally*/
-
-  def getOneTest(id: Int, uuid: UUID): Future[Option[(Int, String, UUID)]] = db.run{
-    {
-      for{
-        uni <- getUniversityQuery(id).result
-        _ <- insertMediaCache(uni.headOption.get._3, uuid) if uni nonEmpty
-      } yield {
-        uni.headOption map {
-          case (uniId, title, img) =>
-            (uniId, title.fold(""){t => t}, uuid)
+  def getExactlyOne(id: Int, uuid: UUID): Future[Option[(Int, String, UUID)]] = {
+    require(id >= 0)
+    db.run{
+      {
+        for{
+          uni <- getUniversityQuery(id).result
+          _ <- insertMediaCache(uni.headOption.get._3, uuid)
+        } yield {
+          uni.headOption map {
+            case (uniId, title, img) =>
+              (uniId, title.fold(""){t => t}, uuid)
+          }
         }
-      }
-    }.transactionally
+      }.transactionally
+    } recover {
+      case nse: NoSuchElementException => None
+    }
   }
 
+  def getSequenseTest(uuids: Seq[UUID]): Future[Seq[(Int, String, UUID)]] = {
+    require(uuids nonEmpty)
+    db.run{
+      {
+        for {
+          unis <- getUniversitySeqQuery(uuids.length).result
+          _ <- insertMediaCache {
+            uuids zip (unis map {x => x._3}) toMap
+          }
+        } yield {
+          (unis zip uuids) map {
+            case (uni, uuid) =>
+              (uni._1, uni._2.fold(""){x=>x}, uuid)
+          }
+        }
+      }.transactionally
+    }
+  }
 }
 
 sealed trait UniversityComponent
 {
-  private def getUniversityForCompile(id: Rep[Int]) = for {
-    uni <- Tables.University if uni.id === id
+  private def generalize(query: Query[Tables.University, Tables.UniversityRow, Seq]) = for {
+    uni <- query
     img <- Tables.Media if uni.mediaId === img.id
-    mime <- Tables.Mime if img.mimeId === mime.id
   } yield (uni.id, uni.title, img.id)
 
-  val getUniversityQuery = Compiled {
+  private def getUniversityForCompile(id: Rep[Int]) = generalize(Tables.University.withFilter(_.id === id))
+
+  lazy val getUniversityQuery = Compiled {
     getUniversityForCompile _
   }
+
+  def getUniversitySeqQuery(count: Int) = generalize(Tables.University.take(count))
+
+  def getUniversitySeqOfQuery(ids: Seq[Int]) = generalize(Tables.University.withFilter(_.id inSet ids))
 }
