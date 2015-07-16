@@ -30,25 +30,25 @@ libraryDependencies ++= {
 //Note: should use the same driver in the rest of app
 sourceGenerators in Compile += Def.task{
   //getting inputs
-  val args = IO.readLines(file(".gen"))
+  val args = IO.readLines(file("main.gen"))
   require(args.size == 2)
 
   //some settings
   val outputDir = (sourceManaged.value / "main").getPath
   val url = "jdbc:postgresql://localhost:5432/beast"
-  val jdbcDriver = "org.postgresql.driver"
+  val jdbcDriver = "org.postgresql.Driver"
   val slickDriver = "slick.driver.PostgresDriver"
   val pkg = "com.beastserver.gen"
 
   //generating
-  toError{
+  //toError{
     (runner in Compile).value.run(
       "slick.codegen.SourceCodeGenerator",
       (dependencyClasspath in Compile).value.files,
       Array(slickDriver, jdbcDriver, url, outputDir, pkg, args.head, args(1)),
       streams.value.log
     )
-  }
+  //}
 
   val fname = outputDir + "/com/beastserver/gen/Tables.scala"
   Seq(file(fname))
