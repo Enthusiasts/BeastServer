@@ -58,5 +58,5 @@ sourceGenerators in Compile += Def.task{
   Seq(file(fname))
 }.taskValue
 
-lazy val root = (project in file(".")).
-  enablePlugins(JavaAppPackaging)
+//lazy val root = (project in file(".")).
+  //enablePlugins(JavaAppPackaging)

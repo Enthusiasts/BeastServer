@@ -13,11 +13,11 @@ import scala.language.postfixOps
 /**
  * debal on 15.07.2015.
  */
-class MediaDAO (implicit val db: Database, implicit val ex: ExecutionContext)
+class MediaDAO (implicit val db: Database, implicit val ex: ExecutionContext) extends MediaComponent
 {
   def getExactlyOne(uuid: UUID): Future[Option[Media]] = {
     db.run {
-      Queries.getExactlyOne(uuid).result
+      getMediaQuery(uuid).result
     } map {
       seq => seq.map {
         case (x, y) =>
@@ -29,23 +29,23 @@ class MediaDAO (implicit val db: Database, implicit val ex: ExecutionContext)
       seq: Seq[Media] => seq.headOption
     }
   }
+}
 
-  def insertMediaCache(id: Int, imgUUID: UUID) = db.run{
-    DBIO.seq {
-      Tables.MediaCache += Tables.MediaCacheRow(imgUUID, id)
-    }
-  }
-
-  private object Queries
-  {
-    private def getExactlyOneQuery(uuid: Rep[UUID]) = for {
+trait MediaComponent
+{
+  private def getMediaForCompile(uuid: Rep[UUID]) = {
+    for {
       mc <- Tables.MediaCache if mc.uuid === uuid
       m <- Tables.Media if mc.mediaId === m.id
       ct <- Tables.Mime if m.mimeId === ct.id
     } yield (ct.mimeType, m.content)
+  }
 
-    val getExactlyOne = Compiled {
-      getExactlyOneQuery _
-    }
+  val getMediaQuery = Compiled {
+    getMediaForCompile _
+  }
+
+  def insertMediaCache(id: Int, imgUUID: UUID) = DBIO.seq {
+      Tables.MediaCache += Tables.MediaCacheRow(imgUUID, id)
   }
 }
