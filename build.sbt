@@ -31,7 +31,7 @@ libraryDependencies ++= {
 sourceGenerators in Compile += Def.task{
   import scala.util.Try
   //getting inputs
-  val args = Try{
+  lazy val args = Try{
     IO.readLines(file("main.gen"))
   }
 
@@ -57,3 +57,6 @@ sourceGenerators in Compile += Def.task{
   val fname = outputDir + "/com/beastserver/gen/Tables.scala"
   Seq(file(fname))
 }.taskValue
+
+lazy val root = (project in file(".")).
+  enablePlugins(JavaAppPackaging)
