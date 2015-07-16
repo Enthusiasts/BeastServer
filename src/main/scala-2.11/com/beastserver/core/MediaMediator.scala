@@ -1,6 +1,6 @@
 package com.beastserver.core
 
-import java.nio.ByteBuffer
+import java.nio.{BufferUnderflowException, ByteBuffer}
 import java.util.{Base64, UUID}
 
 import akka.actor.Actor
@@ -46,7 +46,9 @@ trait MediaMediator
         _.fold[RestResponse](NotFoundFailure())(ExactlyOne)
       } recover {
         //TODO: set up slick logging
-        case any => any.printStackTrace();InternalErrorFailure()
+        case iae: IllegalArgumentException => NotFoundFailure() //may caused by base64 decoder
+        case bae: BufferUnderflowException => NotFoundFailure() //the same
+        case any => any.printStackTrace(); InternalErrorFailure()
       } pipeTo sender()
   }
 }
