@@ -8,8 +8,8 @@ import spray.routing.{HttpService, RequestContext}
 /**
  * DeBalid on 12.07.2015.
  */
-trait UniversityRoute extends HttpService {
-  this: Actor with PerRequestToMediator =>
+trait UniversityRoute {
+  this: Actor with HttpService with PerRequestToMediator =>
 
   import com.beastserver.core.UniversityMediator._
 
@@ -39,8 +39,9 @@ trait UniversityRoute extends HttpService {
       count =>
         //Get a number of these
         get {
-          case any: RequestContext =>
-            createPerRequest(any, context.actorOf(Props(new MediatorActor)), GetSequence(count))
+          toMediator {
+            GetSequence(count)
+          }
         }
     } ~
     pathEndOrSingleSlash

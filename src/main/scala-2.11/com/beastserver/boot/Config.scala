@@ -18,9 +18,9 @@ trait Config {
   lazy val beastPort: Int = Try {factory.getInt("beast.port")} filter{_ > 0} get
   lazy val receiveTimeout: Duration = (Try {factory.getInt("beast.receiveTimeout")} filter {_>0} get).seconds
 
-  /*lazy val dbHost =     Try(factory.getString("db.host")) get
+  lazy val dbHost =     Try(factory.getString("db.host")) get
   lazy val dbPort =     Try(factory.getInt("db.port")) get
   lazy val dbName =     Try(factory.getString("db.name")) get
   lazy val dbUser =     Try(factory.getString("db.user")) get
-  lazy val dbPassword = Try(factory.getString("db.password")) get*/
+  lazy val dbPassword = Try(factory.getString("db.password")) get
 }

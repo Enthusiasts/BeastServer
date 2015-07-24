@@ -1,15 +1,14 @@
 package com.beastserver.route
 
 import akka.actor.Actor
-import com.beastserver.core.PerRequestToMediator
 import spray.routing.HttpService
 
 /**
  * debal on 12.07.2015.
  */
-trait MediaRoute extends HttpService
+trait MediaRoute //extends HttpService
 {
-  this: Actor with PerRequestToMediator =>
+  this: Actor with HttpService with PerRequestToMediator =>
 
   import com.beastserver.core.MediaMediator._
 

@@ -1,9 +1,9 @@
 package com.beastserver.core
 
-import akka.actor.{Actor, ActorRef, Props}
-import com.beastserver.route.PerRequestCreator
+import akka.actor.{Actor, Props}
+import akka.event.Logging
+import com.beastserver.boot.Config
 import slick.driver.PostgresDriver.api._
-import spray.routing.Route
 
 import scala.concurrent.ExecutionContext
 
@@ -15,18 +15,6 @@ trait Mediator
 {
   implicit def db: Database
   implicit def execContext: ExecutionContext
-
-}
-
-//Trait to implement some sugar in routes layer
-//Actually creates per-request actor with current request context to complete
-//Then this per-request actor sends given message to mediator-actor
-trait PerRequestToMediator extends PerRequestCreator
-{
-  this: Actor =>
-
-  def mediatorActor: ActorRef
-  def toMediator(message: RestRequest): Route = perRequest(mediatorActor, message)
 }
 
 object MediatorActor
@@ -37,12 +25,17 @@ object MediatorActor
   def props(): Props = Props(classOf[MediatorActor])
 }
 
-class MediatorActor extends Actor with Mediator
+class MediatorActor extends Actor with Config
+with Mediator
 with UniversityMediator
 with MediaMediator
 {
   final lazy val db = Database.forConfig("db")
-  final lazy val execContext = context.dispatcher
+  /*final lazy val db = Database.forURL("jdbc:postgresql://localhost:5432/beast",
+    user = "beast_consumer",
+    password = "e02o7NRk/m5718B",
+    driver = "org.postgresql.Driver")*/
+  final lazy val execContext = /*context.dispatcher*/ context.system.dispatchers.lookup("custom-dispatcher")
 
   def receive = handleUniversity orElse handleMedia orElse stop
 
@@ -51,4 +44,26 @@ with MediaMediator
       db.close()
       context.stop(context.self)
   }
+
+  override def preRestart(reason: Throwable, message: Option[Any]) = {
+    log.debug("mediator preRestart")
+    db.close()
+    super.preRestart(reason, message)
+  }
+
+  override def postRestart(reason: Throwable): Unit = {
+    log.debug("mediator postRestart!")
+    reason.printStackTrace()
+    preStart()
+  }
+
+  override def postStop() = {
+    log.debug("mediator postStop")
+  }
+
+  override def preStart() = {
+    log.debug("mediator preStart")
+  }
+
+  private val log = Logging.getLogger(context.system, this)
 }

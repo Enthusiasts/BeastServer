@@ -1,6 +1,7 @@
 package com.beastserver.route
 
 import akka.actor.{Actor, ActorRef, Props, ReceiveTimeout}
+import akka.event.Logging
 import com.beastserver.boot.Config
 import com.beastserver.core._
 import org.json4s.DefaultFormats
@@ -61,15 +62,31 @@ trait PerRequestCreator
   import PerRequest._
 
   def createPerRequest(reqContext: RequestContext, target: ActorRef, message: RestRequest) = {
-    context.actorOf(Props(new WithActorRef(reqContext, target, message)))
+    context.actorOf(Props(classOf[WithActorRef], reqContext, target, message), "per-request")
   }
 
   def createPerRequest(r: RequestContext, props: Props, message: RestRequest) =
-    context.actorOf(Props(new WithProps(r, props, message)))
+    context.actorOf(Props(classOf[WithProps], r, props, message), "per-request")
 
   //Wrappers to implement some sugar
   def perRequest(props: Props, message: RestRequest): Route =
     (r: RequestContext) => createPerRequest(r,props,message)
   def perRequest(target: ActorRef, message: RestRequest): Route =
     (r: RequestContext) => createPerRequest(r,target,message)
+}
+
+//Trait to implement some sugar in routes layer
+//Actually creates per-request actor with current request context to complete
+//Then this per-request actor sends given message to mediator-actor
+trait PerRequestToMediator extends PerRequestCreator
+{
+  this: Actor =>
+
+  def mediatorActor: ActorRef
+  def toMediator(message: RestRequest): Route = {
+    log.debug("toMediator!!!\n"+mediatorActor)
+    perRequest(mediatorActor, message)
+  }
+
+  private val log = Logging.getLogger(this.context.system, this)
 }
