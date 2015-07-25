@@ -33,6 +33,11 @@ sourceGenerators in Compile += Def.task{
   //getting inputs
   lazy val args = Try{
     IO.readLines(file("main.gen"))
+  } flatMap {
+    arr => Try {
+      require(arr.length == 3, "\nmain.gen should content 3 lines:\njdbc_url\ndb_user\ndb_password")
+      arr
+    }
   }
 
   //some settings
