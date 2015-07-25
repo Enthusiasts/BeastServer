@@ -18,6 +18,14 @@ trait UniversityRoute {
     path(IntNumber) {
       id =>
         //Get that exactly
+        /**
+         * @api {get} /university/:id Получение вуза по идентификатору
+         * @apiName GetExactlyOneUniversity
+         * @apiGroup University
+         * @apiVersion 0.1.0
+         *
+         * @apiParam {Number} id Идентификатор вуза
+         * */
         get {
           //Actually creates per-request actor with current request context to complete
           //Then this per-request actor sends given message to mediator-actor
@@ -38,6 +46,14 @@ trait UniversityRoute {
     {
       count =>
         //Get a number of these
+        /**
+         * @api {get} /university/all/:count Получение списка вузов
+         * @apiName GetSequenceUniversity
+         * @apiGroup University
+         * @apiVersion 0.1.0
+         *
+         * @apiParam {Number} count Количество вузов
+         * */
         get {
           toMediator {
             GetSequence(count)
