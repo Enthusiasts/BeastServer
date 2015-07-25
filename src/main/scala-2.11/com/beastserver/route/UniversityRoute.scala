@@ -24,7 +24,7 @@ trait UniversityRoute {
          * @apiGroup University
          * @apiVersion 0.1.0
          *
-         * @apiParam {Number} id Идентификатор вуза
+         * @apiParam {String} id Идентификатор вуза
          * */
         get {
           //Actually creates per-request actor with current request context to complete

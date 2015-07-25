@@ -2,6 +2,7 @@ package com.beastserver
 
 import akka.actor.{Actor, ActorRef, Props}
 import com.beastserver.route._
+import spray.http.HttpHeaders.RawHeader
 import spray.routing.HttpService
 
 /**
@@ -12,7 +13,11 @@ with PerRequestToMediator
 with UniversityRoute
 with MediaRoute
 {
-  def receive = runRoute(universityRoute~mediaRoute)
+  def receive = runRoute{
+    respondWithHeader(RawHeader("Access-Control-Allow-Origin", "*")) {
+      universityRoute~mediaRoute
+    }
+  }
 
   def actorRefFactory = context
 }
