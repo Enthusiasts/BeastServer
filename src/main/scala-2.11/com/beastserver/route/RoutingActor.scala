@@ -15,11 +15,9 @@ with MediaRoute
 with Cors
 {
   def receive = runRoute{
-    //respondWithHeader(RawHeader("Access-Control-Allow-Origin", "*")) {
-      withCors{
-        universityRoute~mediaRoute
-      }
-    //}
+    withCors{
+      universityRoute~mediaRoute
+    }
   }
 
   def actorRefFactory = context
