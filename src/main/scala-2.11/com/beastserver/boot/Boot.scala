@@ -4,8 +4,8 @@ import akka.actor.ActorSystem
 import akka.io.IO
 import akka.pattern.ask
 import akka.util.Timeout
-import com.beastserver.RoutingActor
 import com.beastserver.core.MediatorActor
+import com.beastserver.route.RoutingActor
 import spray.can.Http
 
 import scala.concurrent.duration._

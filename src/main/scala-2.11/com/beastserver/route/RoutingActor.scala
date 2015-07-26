@@ -1,7 +1,7 @@
-package com.beastserver
+package com.beastserver.route
 
 import akka.actor.{Actor, ActorRef, Props}
-import com.beastserver.route._
+import com.beastserver.util.Cors
 import spray.http.HttpHeaders.RawHeader
 import spray.routing.HttpService
 
@@ -12,11 +12,14 @@ class RoutingActor(val mediatorActor: ActorRef) extends Actor with HttpService
 with PerRequestToMediator
 with UniversityRoute
 with MediaRoute
+with Cors
 {
   def receive = runRoute{
-    respondWithHeader(RawHeader("Access-Control-Allow-Origin", "*")) {
-      universityRoute~mediaRoute
-    }
+    //respondWithHeader(RawHeader("Access-Control-Allow-Origin", "*")) {
+      withCors{
+        universityRoute~mediaRoute
+      }
+    //}
   }
 
   def actorRefFactory = context
