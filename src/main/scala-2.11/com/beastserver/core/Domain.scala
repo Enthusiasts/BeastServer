@@ -22,3 +22,9 @@ case class InternalErrorFailure() extends  RestResponse
 case class NotFoundFailure() extends RestResponse
 
 //TODO: think about generalizing rest responses
+
+object SuccessResponse {
+  case class WithMeta[T](content: T, meta: Map[String, Any]) extends SuccessResponse
+  case class WithoutMeta[T](content: T) extends SuccessResponse
+  case class AsMedia(body: Models.Media) extends SuccessResponse
+}

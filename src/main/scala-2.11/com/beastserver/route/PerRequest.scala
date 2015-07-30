@@ -5,8 +5,10 @@ import akka.event.Logging
 import com.beastserver.boot.Config
 import com.beastserver.core._
 import org.json4s.DefaultFormats
-import spray.http.{StatusCode, StatusCodes}
+import spray.http.HttpHeaders.`Content-Type`
+import spray.http._
 import spray.httpx.Json4sSupport
+import spray.httpx.marshalling.{BasicMarshallers, Marshaller}
 import spray.routing.{RequestContext, Route}
 
 /**
@@ -23,7 +25,6 @@ trait PerRequest extends Actor with Config with Json4sSupport
   //Message to the bounded core-actor
   def message: RestRequest
 
-  //TODO: find out
   val json4sFormats = DefaultFormats
 
   //Actually what this route-actor should do
@@ -31,15 +32,34 @@ trait PerRequest extends Actor with Config with Json4sSupport
   target ! message
 
   def receive = {
+    case am: SuccessResponse.AsMedia => completeAsMedia(am.body)
     case rr:  SuccessResponse       => complete(StatusCodes.OK, rr)
-    case nff: NotFoundFailure       => complete(StatusCodes.BadRequest, FailureMessage("Such resource doesn't exist"))
+    case nff: NotFoundFailure       => complete(StatusCodes.NotFound, FailureMessage("Such resource doesn't exist"))
     case ief: InternalErrorFailure  => complete(StatusCodes.InternalServerError, FailureMessage("Some internal error"))
     case ReceiveTimeout             => complete(StatusCodes.GatewayTimeout, FailureMessage("Timeout"))
   }
 
-  //Complete request
+  //Complete request with json
   private def complete[T <: AnyRef](statusCode: StatusCode, content: T) = {
     requestContext.complete(statusCode, content)
+    context.stop(context.self)
+  }
+
+  //implicit val mediaMarshaller = Marshaller.of[Models.Media]
+
+  //Complete with http request representing file
+  //TODO: REMOVE THIS CRUNCH and read json4s manual
+  private def completeAsMedia(media: Models.Media) = {
+    //requestContext.complete(HttpEntity(media.contentType, media.content), BasicMarshallers.HttpEntityMarshaller)
+    requestContext withHttpResponseEntityMapped {
+      _.flatMap{
+        any =>
+          HttpEntity(media.contentType, media.content)
+      }
+    } withHttpResponseHeadersMapped {
+      headers =>
+        `Content-Type`(ContentType(media.contentType)) :: headers
+    } complete StatusCodes.OK
     context.stop(context.self)
   }
 }

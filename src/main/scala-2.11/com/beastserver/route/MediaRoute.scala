@@ -15,7 +15,7 @@ trait MediaRoute //extends HttpService
   val mediaRoute = path("media" / Rest) { uuid =>
     get {
       toMediator {
-        GetExactlyOne(uuid)
+        GetMedia(uuid)
       }
     }
   }

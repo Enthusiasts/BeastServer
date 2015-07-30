@@ -22,7 +22,7 @@ trait UniversityRoute {
           //Actually creates per-request actor with current request context to complete
           //Then this per-request actor sends given message to mediator-actor
           toMediator{
-            GetExactlyOne(id)
+            GetUniversity(id)
           }
         }~
         //Update that exactly
@@ -40,7 +40,7 @@ trait UniversityRoute {
         //Get a number of these
         get {
           toMediator {
-            GetSequence(count)
+            GetUniversitySeq(count)
           }
         }
     } ~

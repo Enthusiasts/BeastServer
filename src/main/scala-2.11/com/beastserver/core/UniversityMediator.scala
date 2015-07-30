@@ -17,11 +17,8 @@ import scala.concurrent.Future
 object UniversityMediator
 {
   //Actor related messages
-  case class GetSequence(num: Int) extends RestRequest
-  case class GetExactlyOne(id: Int) extends RestRequest
-
-  case class Sequence(content: Seq[University]) extends SuccessResponse
-  case class ExactlyOne(content: University) extends SuccessResponse
+  case class GetUniversitySeq(num: Int) extends RestRequest
+  case class GetUniversity(id: Int) extends RestRequest
 }
 
 //Used in MediatorActor
@@ -46,7 +43,7 @@ trait UniversityMediator
       }
       else sender() ! NotFoundFailure()*/
 
-    case GetExactlyOne(id: Int) =>
+    case GetUniversity(id: Int) =>
       if (id >= 0) {
         /*dao.getExactlyOne(id) map {
           _.fold[RestResponse](NotFoundFailure())(ExactlyOne)*/
@@ -68,7 +65,7 @@ trait UniversityMediator
         }
 
         result map {
-          _.fold[RestResponse](NotFoundFailure())(ExactlyOne)
+          _.fold[RestResponse](NotFoundFailure())(SuccessResponse.WithoutMeta(_))
         } recover {
           case any => any.printStackTrace();InternalErrorFailure()
         } pipeTo sender()
@@ -76,7 +73,7 @@ trait UniversityMediator
       else sender() ! NotFoundFailure()
 
       //TODO: think about generalizing
-    case GetSequence(count: Int) =>
+    case GetUniversitySeq(count: Int) =>
       if (count > 0) {
         /*dao.getExactlyOne(id) map {
           _.fold[RestResponse](NotFoundFailure())(ExactlyOne)*/
@@ -102,7 +99,10 @@ trait UniversityMediator
           }
 
         result map {
-          Sequence
+          x =>
+            SuccessResponse.WithMeta(x, Map{
+              "length" -> x.length
+            })
         } recover {
           case any => any.printStackTrace();InternalErrorFailure()
         } pipeTo sender()

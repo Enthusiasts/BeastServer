@@ -5,7 +5,6 @@ import java.util.{Base64, UUID}
 
 import akka.actor.Actor
 import akka.pattern.pipe
-import com.beastserver.core.Models.Media
 import com.beastserver.dao.MediaDAO
 
 import scala.concurrent.Future
@@ -16,9 +15,7 @@ import scala.language.postfixOps
  */
 object MediaMediator
 {
-  case class GetExactlyOne(uuid: String) extends RestRequest
-
-  case class ExactlyOne(content: Media) extends SuccessResponse
+  case class GetMedia(uuid: String) extends RestRequest
 }
 
 trait MediaMediator
@@ -30,7 +27,7 @@ trait MediaMediator
   import MediaMediator._
 
   def handleMedia: Receive = {
-    case GetExactlyOne(input: String) =>
+    case GetMedia(input: String) =>
       if (input nonEmpty) Future {
         val decoded = Base64.getUrlDecoder.decode(input)
         //Some not trivial steps to retrieve UUID from byte array
@@ -43,7 +40,7 @@ trait MediaMediator
       } flatMap {
         mediaDAO.getExactlyOne
       } map {
-        _.fold[RestResponse](NotFoundFailure())(ExactlyOne)
+        _.fold[RestResponse](NotFoundFailure())(SuccessResponse.AsMedia)
       } recover {
         //TODO: set up slick logging
         case iae: IllegalArgumentException => NotFoundFailure() //may caused by base64 decoder
