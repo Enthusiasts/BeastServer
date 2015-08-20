@@ -1,8 +1,17 @@
+//lazy val beastserver = (project in file(".")).
+enablePlugins(JavaServerAppPackaging)
+
 name := "BeastServer"
 
 version       := "0.1"
 
 scalaVersion  := "2.11.6"
+
+maintainer := "Nikita Fomichev <debalid@gmail.com>"
+
+packageSummary := "Glorious Beast"
+
+packageDescription := "Beast API Server"
 
 scalacOptions := Seq("-unchecked", "-deprecation", "-encoding", "utf8", "-target:jvm-1.8", "-feature")
 
@@ -62,6 +71,3 @@ sourceGenerators in Compile += Def.task{
   val fname = outputDir + "/com/beastserver/gen/Tables.scala"
   Seq(file(fname))
 }.taskValue
-
-lazy val beastserver = (project in file(".")).
-  enablePlugins(JavaAppPackaging)
