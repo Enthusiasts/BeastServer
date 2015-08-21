@@ -5,10 +5,10 @@ import akka.event.Logging
 import com.beastserver.boot.Config
 import com.beastserver.core._
 import org.json4s.DefaultFormats
-import spray.http.HttpHeaders.`Content-Type`
+import spray.http.LanguageRanges.*
 import spray.http._
 import spray.httpx.Json4sSupport
-import spray.httpx.marshalling.{BasicMarshallers, Marshaller}
+import spray.httpx.marshalling.Marshaller
 import spray.routing.{RequestContext, Route}
 
 /**
@@ -32,34 +32,34 @@ trait PerRequest extends Actor with Config with Json4sSupport
   target ! message
 
   def receive = {
-    case am: SuccessResponse.AsMedia => completeAsMedia(am.body)
-    case rr:  SuccessResponse       => complete(StatusCodes.OK, rr)
-    case nff: NotFoundFailure       => complete(StatusCodes.NotFound, FailureMessage("Such resource doesn't exist"))
-    case ief: InternalErrorFailure  => complete(StatusCodes.InternalServerError, FailureMessage("Some internal error"))
-    case ReceiveTimeout             => complete(StatusCodes.GatewayTimeout, FailureMessage("Timeout"))
+    case am:  SuccessResponse.AsMedia => completeWithMedia(am.body)
+    case rr:  SuccessResponse         => complete(StatusCodes.OK, rr)
+    case nff: NotFoundFailure         => complete(StatusCodes.NotFound, FailureMessage("Such resource doesn't exist"))
+    case ief: InternalErrorFailure    => complete(StatusCodes.InternalServerError, FailureMessage("Some internal error"))
+    case ReceiveTimeout               => complete(StatusCodes.GatewayTimeout, FailureMessage("Timeout"))
   }
 
   //Complete request with json
   private def complete[T <: AnyRef](statusCode: StatusCode, content: T) = {
-    requestContext.complete(statusCode, content)
+    requestContext.withHttpResponseHeadersMapped {
+      list =>
+        HttpHeaders.RawHeader("X-DebugInfo", "answer: rest") :: list
+    } complete(statusCode, content)
     context.stop(context.self)
   }
 
-  //implicit val mediaMarshaller = Marshaller.of[Models.Media]
+  //Complete with http request representing a file.
+  private def completeWithMedia(media: Models.Media) = {
+    //Our model contains its mime-type itself, so we implicitly catch model marshaller here.
+    implicit val mediaMarshaller = Marshaller.apply[Models.Media] {
+      (value, ctx) =>
+        ctx.marshalTo(HttpEntity(value.contentType, value.content))
+    }
 
-  //Complete with http request representing file
-  //TODO: REMOVE THIS CRUNCH and read json4s manual
-  private def completeAsMedia(media: Models.Media) = {
-    //requestContext.complete(HttpEntity(media.contentType, media.content), BasicMarshallers.HttpEntityMarshaller)
-    requestContext withHttpResponseEntityMapped {
-      _.flatMap{
-        any =>
-          HttpEntity(media.contentType, media.content)
-      }
-    } withHttpResponseHeadersMapped {
-      headers =>
-        `Content-Type`(ContentType(media.contentType)) :: headers
-    } complete StatusCodes.OK
+    requestContext.withHttpResponseHeadersMapped {
+      list =>
+        HttpHeaders.RawHeader("X-DebugInfo", "answer: media") :: list
+    } complete media
     context.stop(context.self)
   }
 }

@@ -7,16 +7,16 @@ import spray.http.MediaType
  */
 object Models
 {
-  final case class University(id: Int, name: String, image: String)
-  final case class Media(contentType: MediaType, content: Array[Byte])
+  case class University(id: Int, name: String, image: String)
+  case class Media(contentType: MediaType, content: Array[Byte])
 }
 
 //Wrappers for rest messages
 trait RestRequest
-trait RestResponse
+sealed trait RestResponse
 
 //Actually possible rest responses
-trait SuccessResponse extends RestResponse
+sealed trait SuccessResponse extends RestResponse
 case class FailureMessage(reason: String) extends RestResponse
 case class InternalErrorFailure() extends  RestResponse
 case class NotFoundFailure() extends RestResponse
