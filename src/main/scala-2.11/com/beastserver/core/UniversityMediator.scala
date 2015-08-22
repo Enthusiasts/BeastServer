@@ -49,7 +49,7 @@ trait UniversityMediator
           _.fold[RestResponse](NotFoundFailure())(ExactlyOne)*/
         val uuidFuture = Future { UUID.randomUUID() }
         val urlFuture = uuidFuture map {
-          x => new String(Base64.getEncoder.encode {
+          x => new String(Base64.getUrlEncoder.encode {
             ByteBuffer.allocate(16).putLong(x.getMostSignificantBits).putLong(x.getLeastSignificantBits).array()
           })
         }
@@ -81,7 +81,7 @@ trait UniversityMediator
 
         val urlsFuture = uuidsFuture map {
           seq => seq map {
-            x => new String(Base64.getEncoder.encode {
+            x => new String(Base64.getUrlEncoder.encode {
               ByteBuffer.allocate(16).putLong(x.getMostSignificantBits).putLong(x.getLeastSignificantBits).array()
             })
           }
