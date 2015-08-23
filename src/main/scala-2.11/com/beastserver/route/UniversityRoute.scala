@@ -9,47 +9,49 @@ import spray.routing.{HttpService, RequestContext}
  * DeBalid on 12.07.2015.
  */
 trait UniversityRoute {
-  this: Actor with HttpService with PerRequestToMediator =>
+  this: Actor with Routing with PerRequestToMediator =>
 
   import com.beastserver.core.UniversityMediator._
 
-  val universityRoute = pathPrefix("university")
-  {
-    path(IntNumber) {
-      id =>
-        //Get that exactly
-        get {
-          //Actually creates per-request actor with current request context to complete
-          //Then this per-request actor sends given message to mediator-actor
-          toMediator{
-            GetUniversity(id)
-          }
-        }~
-        //Update that exactly
-        post {
-          respondWithMediaType(`text/html`) { complete {<html><body>placeholder</body></html>} }
-        }~
-        //Delete that exactly
-        delete {
-          respondWithMediaType(`text/html`) { complete {<html><body>placeholder</body></html>} }
-        }
-    } ~
-    path("all" / IntNumber)
+  addRoute{
+    pathPrefix("university")
     {
-      count =>
-        //Get a number of these
-        get {
-          toMediator {
-            GetUniversitySeq(count)
+      path(IntNumber) {
+        id =>
+          //Get that exactly
+          get {
+            //Actually creates per-request actor with current request context to complete
+            //Then this per-request actor sends given message to mediator-actor
+            toMediator{
+              GetUniversity(id)
+            }
+          }~
+            //Update that exactly
+            post {
+              respondWithMediaType(`text/html`) { complete {<html><body>placeholder</body></html>} }
+            }~
+            //Delete that exactly
+            delete {
+              respondWithMediaType(`text/html`) { complete {<html><body>placeholder</body></html>} }
+            }
+      } ~
+        path("all" / IntNumber)
+        {
+          count =>
+            //Get a number of these
+            get {
+              toMediator {
+                GetUniversitySeq(count)
+              }
+            }
+        } ~
+        pathEndOrSingleSlash
+        {
+          //Create new ones
+          put {
+            respondWithMediaType(`text/html`) { complete {<html><body>placeholder</body></html>} }
           }
         }
-    } ~
-    pathEndOrSingleSlash
-    {
-      //Create new ones
-      put {
-        respondWithMediaType(`text/html`) { complete {<html><body>placeholder</body></html>} }
-      }
     }
   }
 }

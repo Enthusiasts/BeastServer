@@ -8,14 +8,16 @@ import spray.routing.HttpService
  */
 trait MediaRoute //extends HttpService
 {
-  this: Actor with HttpService with PerRequestToMediator =>
+  this: Actor with Routing with PerRequestToMediator =>
 
   import com.beastserver.core.MediaMediator._
 
-  val mediaRoute = path("media" / Rest) { uuid =>
-    get {
-      toMediator {
-        GetMedia(uuid)
+  addRoute{
+    path("media" / Rest) { uuid =>
+      get {
+        toMediator {
+          GetMedia(uuid)
+        }
       }
     }
   }
