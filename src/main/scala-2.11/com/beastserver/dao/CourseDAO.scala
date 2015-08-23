@@ -44,10 +44,12 @@ class CourseDAO (implicit val db: Database, implicit val ex: ExecutionContext)
 
   override def delete(id: Int): Future[Option[Course]] = {
     db.run {
-      for {
-        course <- matchCourse(id).result
-        _ <- matchCourse(id).delete
-      } yield course
+      {
+        for {
+          course <- matchCourse(id).result
+          _ <- matchCourse(id).delete
+        } yield course
+      }.transactionally
     } map {
       seq => seq.headOption.map(persistent2model)
     }
@@ -75,6 +77,7 @@ class CourseDAO (implicit val db: Database, implicit val ex: ExecutionContext)
   }
 }
 
+//All common slick queries are here
 sealed trait CourseComponent
 {
   //Queries to compile
@@ -93,6 +96,7 @@ sealed trait CourseComponent
   }
 }
 
+//Some common in use filters
 sealed class CourseFilters
 {
   lazy val prefix = (sample: String, count: Int) => new Filter[Tables.Course] {
