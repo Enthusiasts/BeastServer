@@ -15,7 +15,7 @@ import scala.language.postfixOps
  */
 object MediaMediator
 {
-  case class GetMedia(uuid: String) extends RestRequest
+  case class GetMedia(uuid: String) extends Messages.RestRequest
 }
 
 trait MediaMediator
@@ -40,12 +40,12 @@ trait MediaMediator
       } flatMap {
         mediaDAO.getExactlyOne
       } map {
-        _.fold[RestResponse](NotFoundFailure())(SuccessResponse.AsMedia)
+        _.fold[Messages.RestResponse](Messages.NotFoundFailure())(Messages.SuccessResponse.AsMedia)
       } recover {
         //TODO: set up slick logging
-        case iae: IllegalArgumentException => NotFoundFailure() //may caused by base64 decoder
-        case bae: BufferUnderflowException => NotFoundFailure() //the same
-        case any => any.printStackTrace(); InternalErrorFailure()
+        case iae: IllegalArgumentException => Messages.NotFoundFailure() //may caused by base64 decoder
+        case bae: BufferUnderflowException => Messages.NotFoundFailure() //the same
+        case any => any.printStackTrace(); Messages.InternalErrorFailure()
       } pipeTo sender()
   }
 }

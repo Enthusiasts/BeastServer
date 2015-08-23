@@ -5,7 +5,6 @@ import akka.event.Logging
 import com.beastserver.boot.Config
 import com.beastserver.core._
 import org.json4s.DefaultFormats
-import spray.http.LanguageRanges.*
 import spray.http._
 import spray.httpx.Json4sSupport
 import spray.httpx.marshalling.Marshaller
@@ -23,7 +22,7 @@ trait PerRequest extends Actor with Config with Json4sSupport
   //Core-actor it is bounded to
   def target: ActorRef
   //Message to the bounded core-actor
-  def message: RestRequest
+  def message: Messages.RestRequest
 
   val json4sFormats = DefaultFormats
 
@@ -32,11 +31,16 @@ trait PerRequest extends Actor with Config with Json4sSupport
   target ! message
 
   def receive = {
-    case am:  SuccessResponse.AsMedia => completeWithMedia(am.body)
-    case rr:  SuccessResponse         => complete(StatusCodes.OK, rr)
-    case nff: NotFoundFailure         => complete(StatusCodes.NotFound, FailureMessage("Such resource doesn't exist"))
-    case ief: InternalErrorFailure    => complete(StatusCodes.InternalServerError, FailureMessage("Some internal error"))
-    case ReceiveTimeout               => complete(StatusCodes.GatewayTimeout, FailureMessage("Timeout"))
+    case am:  Messages.SuccessResponse.AsMedia =>
+      completeWithMedia(am.body)
+    case rr:  Messages.SuccessResponse =>
+      complete(StatusCodes.OK, rr)
+    case nff: Messages.NotFoundFailure =>
+      complete(StatusCodes.NotFound, Messages.FailureMessage("Such resource doesn't exist"))
+    case ief: Messages.InternalErrorFailure =>
+      complete(StatusCodes.InternalServerError, Messages.FailureMessage("Some internal error"))
+    case ReceiveTimeout =>
+      complete(StatusCodes.GatewayTimeout, Messages.FailureMessage("Timeout"))
   }
 
   //Complete request with json
@@ -67,9 +71,9 @@ trait PerRequest extends Actor with Config with Json4sSupport
 object PerRequest
 {
   //Per-request actor implementations
-  case class WithActorRef(requestContext: RequestContext, target: ActorRef, message: RestRequest) extends PerRequest
+  case class WithActorRef(requestContext: RequestContext, target: ActorRef, message: Messages.RestRequest) extends PerRequest
 
-  case class WithProps(requestContext: RequestContext, props: Props, message: RestRequest) extends PerRequest {
+  case class WithProps(requestContext: RequestContext, props: Props, message: Messages.RestRequest) extends PerRequest {
     lazy val target = context.actorOf(props)
   }
 }
@@ -81,17 +85,17 @@ trait PerRequestCreator
 
   import PerRequest._
 
-  def createPerRequest(reqContext: RequestContext, target: ActorRef, message: RestRequest) = {
+  def createPerRequest(reqContext: RequestContext, target: ActorRef, message: Messages.RestRequest) = {
     context.actorOf(Props(classOf[WithActorRef], reqContext, target, message), "per-request")
   }
 
-  def createPerRequest(r: RequestContext, props: Props, message: RestRequest) =
+  def createPerRequest(r: RequestContext, props: Props, message: Messages.RestRequest) =
     context.actorOf(Props(classOf[WithProps], r, props, message), "per-request")
 
   //Wrappers to implement some sugar
-  def perRequest(props: Props, message: RestRequest): Route =
+  def perRequest(props: Props, message: Messages.RestRequest): Route =
     (r: RequestContext) => createPerRequest(r,props,message)
-  def perRequest(target: ActorRef, message: RestRequest): Route =
+  def perRequest(target: ActorRef, message: Messages.RestRequest): Route =
     (r: RequestContext) => createPerRequest(r,target,message)
 }
 
@@ -103,7 +107,7 @@ trait PerRequestToMediator extends PerRequestCreator
   this: Actor =>
 
   def mediatorActor: ActorRef
-  def toMediator(message: RestRequest): Route = {
+  def toMediator(message: Messages.RestRequest): Route = {
     log.debug("toMediator!!!\n"+mediatorActor)
     perRequest(mediatorActor, message)
   }

@@ -17,8 +17,8 @@ import scala.concurrent.Future
 object UniversityMediator
 {
   //Actor related messages
-  case class GetUniversitySeq(num: Int) extends RestRequest
-  case class GetUniversity(id: Int) extends RestRequest
+  case class GetUniversitySeq(num: Int) extends Messages.RestRequest
+  case class GetUniversity(id: Int) extends Messages.RestRequest
 }
 
 //Used in MediatorActor
@@ -65,12 +65,12 @@ trait UniversityMediator
         }
 
         result map {
-          _.fold[RestResponse](NotFoundFailure())(SuccessResponse.WithoutMeta(_))
+          _.fold[Messages.RestResponse](Messages.NotFoundFailure())(Messages.SuccessResponse.WithoutMeta(_))
         } recover {
-          case any => any.printStackTrace();InternalErrorFailure()
+          case any => any.printStackTrace();Messages.InternalErrorFailure()
         } pipeTo sender()
       }
-      else sender() ! NotFoundFailure()
+      else sender() ! Messages.NotFoundFailure()
 
       //TODO: think about generalizing
     case GetUniversitySeq(count: Int) =>
@@ -100,13 +100,13 @@ trait UniversityMediator
 
         result map {
           x =>
-            SuccessResponse.WithMeta(x, Map{
+            Messages.SuccessResponse.WithMeta(x, Map{
               "length" -> x.length
             })
         } recover {
-          case any => any.printStackTrace();InternalErrorFailure()
+          case any => any.printStackTrace();Messages.InternalErrorFailure()
         } pipeTo sender()
       }
-      else sender() ! NotFoundFailure()
+      else sender() ! Messages.NotFoundFailure()
   }
 }
