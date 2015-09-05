@@ -31,11 +31,7 @@ with UniversityMediator
 with MediaMediator
 {
   final lazy val db = Database.forConfig("db")
-  /*final lazy val db = Database.forURL("jdbc:postgresql://localhost:5432/beast",
-    user = "beast_consumer",
-    password = "e02o7NRk/m5718B",
-    driver = "org.postgresql.Driver")*/
-  final lazy val execContext = /*context.dispatcher*/ context.system.dispatchers.lookup("custom-dispatcher")
+  final lazy val execContext = context.system.dispatchers.lookup("custom-dispatcher")
 
   def receive = handleUniversity orElse handleMedia orElse stop
 
