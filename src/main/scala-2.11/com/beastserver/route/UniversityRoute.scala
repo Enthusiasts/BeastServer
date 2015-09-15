@@ -1,9 +1,7 @@
 package com.beastserver.route
 
-import akka.actor.{Actor, Props}
-import com.beastserver.core._
+import akka.actor.Actor
 import spray.http.MediaTypes._
-import spray.routing.{HttpService, RequestContext}
 
 /**
  * DeBalid on 12.07.2015.

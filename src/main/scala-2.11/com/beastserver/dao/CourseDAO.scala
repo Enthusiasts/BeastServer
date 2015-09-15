@@ -3,8 +3,8 @@ package com.beastserver.dao
 import com.beastserver.core.Models
 import com.beastserver.core.Models.Course
 import com.beastserver.gen.Tables
-import slick.lifted.{Rep, Compiled}
 import slick.driver.PostgresDriver.api._
+import slick.lifted.{Compiled, Rep}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -18,8 +18,11 @@ class CourseDAO (implicit val db: Database, implicit val ex: ExecutionContext)
   lazy val filters = new CourseFilters()
 
   //Mapping from tuple to model.
-  private def persistent2model(row: Tables.CourseRow) =
+  private def persistent2model(row: Tables.CourseRow): Models.Course =
     Models.Course(row.id, row.title.fold(""){x=>x}, row.universityId)
+
+  private def model2persistent(model: Models.Course): Tables.CourseRow =
+    Tables.CourseRow(model.id, Option(model.title), model.university_id)
 
   override def getExactlyOne(id: Int): Future[Option[Course]] = {
     require(id > 0)
@@ -34,9 +37,21 @@ class CourseDAO (implicit val db: Database, implicit val ex: ExecutionContext)
     deleteAllBy(filters.inside(ids))
   }
 
-  override def insertOrUpdateOne(inst: Course): Future[Option[Course]] = ???
+  override def insertOrUpdateOne(inst: Course): Future[Option[Course]] = {
+    db.run{
+      insertOrUpdateQuery(Seq(model2persistent(inst)))
+    } map {
+      _.headOption map persistent2model
+    }
+  }
 
-  override def insertOrUpdateAll(seq: Seq[Course]): Future[Option[Course]] = ???
+  override def insertOrUpdateAll(seq: Seq[Course]): Future[Seq[Course]] = {
+    db.run{
+      insertOrUpdateQuery(seq map model2persistent)
+    } map {
+      _ map persistent2model
+    }
+  }
 
   override def getSequence(ids: Seq[Int]): Future[Seq[Course]] = {
     getSequenceBy(filters.inside(ids))
@@ -85,14 +100,18 @@ sealed trait CourseComponent
     course <- Tables.Course if course.id === id
   } yield course
 
-  lazy val matchCourse = Compiled {
+  protected lazy val matchCourse = Compiled {
     matchCourseForCompile _
   }
 
-  def matchAllByQuery(filter: Filter[Tables.Course]) = {
+  protected def matchAllByQuery(filter: Filter[Tables.Course]) = {
     for {
       course <- Tables.Course if filter(course)
     } yield course
+  }
+
+  protected def insertOrUpdateQuery(list: Seq[Tables.CourseRow]) = {
+    (Tables.Course returning Tables.Course.map(_.id) into ((course, newId) => course.copy(id = newId))) ++= list
   }
 }
 

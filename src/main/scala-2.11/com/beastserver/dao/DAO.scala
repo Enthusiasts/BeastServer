@@ -14,7 +14,7 @@ trait DAO[Type, Identifier, PersistType]
   def getSequenceBy(where: Filter[PersistType]): Future[Seq[Type]]
 
   def insertOrUpdateOne(inst: Type): Future[Option[Type]]
-  def insertOrUpdateAll(seq: Seq[Type]): Future[Option[Type]]
+  def insertOrUpdateAll(seq: Seq[Type]): Future[Seq[Type]]
 
   def delete(id: Identifier): Future[Option[Type]]
   def deleteAll(ids: Seq[Identifier]): Future[Seq[Type]]
