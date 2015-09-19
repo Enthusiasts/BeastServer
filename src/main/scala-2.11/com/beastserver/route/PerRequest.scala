@@ -27,7 +27,7 @@ trait PerRequest extends Actor with Config with Json4sSupport
   val json4sFormats = DefaultFormats
 
   //Actually what this route-actor should do
-  context.setReceiveTimeout(receiveTimeout)
+  context.setReceiveTimeout(BeastDefaults.receiveTimeout)
   target ! message
 
   def receive = {

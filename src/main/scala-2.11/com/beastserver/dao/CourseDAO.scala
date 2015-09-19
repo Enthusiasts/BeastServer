@@ -33,8 +33,8 @@ class CourseDAO (implicit val db: Database, implicit val ex: ExecutionContext)
     }
   }
 
-  override def deleteAll(ids: Seq[Int]): Future[Seq[Course]] = {
-    deleteAllBy(filters.inside(ids))
+  override def deleteAll(ids: Seq[Int]): Future[Book[Course]] = {
+    deleteAllBy(Seq(filters.inside(ids)))
   }
 
   override def insertOrUpdateOne(inst: Course): Future[Option[Course]] = {
@@ -45,16 +45,16 @@ class CourseDAO (implicit val db: Database, implicit val ex: ExecutionContext)
     }
   }
 
-  override def insertOrUpdateAll(seq: Seq[Course]): Future[Seq[Course]] = {
+  override def insertOrUpdateAll(seq: Seq[Course]): Future[Book[Course]] = {
     db.run{
       insertOrUpdateQuery(seq map model2persistent)
     } map {
-      _ map persistent2model
+      x => Book(x map persistent2model)
     }
   }
 
-  override def getSequence(ids: Seq[Int]): Future[Seq[Course]] = {
-    getSequenceBy(filters.inside(ids))
+  override def getSequence(ids: Seq[Int]): Future[Book[Course]] = {
+    getSequenceBy(ids.length, Seq(filters.inside(ids)))
   }
 
   override def delete(id: Int): Future[Option[Course]] = {
@@ -70,15 +70,16 @@ class CourseDAO (implicit val db: Database, implicit val ex: ExecutionContext)
     }
   }
 
-  override def getSequenceBy(where: Filter[Tables.Course]): Future[Seq[Course]] = {
+  override def getSequenceBy(count: Int, where: Seq[Filter[Tables.Course]]): Future[Book[Course]] = {
     db.run {
-      matchAllByQuery(where).result
+      matchAllByQuery(count, where).result
     } map {
-      seq => seq.map(persistent2model)
+      seq => Book(seq map persistent2model)
     }
   }
+  //def getSequenceBy(count: Int, where: Filter[Tables.Course]*): Future[Book[Course]] = getSequenceBy(count, where)
 
-  override def deleteAllBy(where: Filter[Tables.Course]): Future[Seq[Course]] = {
+  override def deleteAllBy(where: Seq[Filter[Tables.Course]]): Future[Book[Course]] = {
     db.run {
       {
         for {
@@ -87,9 +88,10 @@ class CourseDAO (implicit val db: Database, implicit val ex: ExecutionContext)
         } yield to
       }.transactionally
     } map {
-      seq => seq map persistent2model
+      seq => Book(seq map persistent2model)
     }
   }
+  //def deleteAllBy(where: Filter[Tables.Course]*): Future[Book[Course]] = deleteAllBy(where)
 }
 
 //All common slick queries are here
@@ -104,9 +106,14 @@ sealed trait CourseComponent
     matchCourseForCompile _
   }
 
-  protected def matchAllByQuery(filter: Filter[Tables.Course]) = {
+  protected def matchAllByQuery(count: Int, filters: Seq[Filter[Tables.Course]]): Query[Tables.Course, Tables.CourseRow, Seq] = {
+    matchAllByQuery(filters) take count
+  }
+
+  protected def matchAllByQuery(filters: Seq[Filter[Tables.Course]]): Query[Tables.Course, Tables.CourseRow, Seq] = {
+    require(filters.nonEmpty)
     for {
-      course <- Tables.Course if filter(course)
+      course <- Tables.Course if filters.foldLeft(filters.head(course))((x, y) => x && y(course)) //Hail to Scala and Slick magic!
     } yield course
   }
 
@@ -118,15 +125,15 @@ sealed trait CourseComponent
 //Some common in use filters
 sealed class CourseFilters
 {
-  lazy val prefix = (sample: String, count: Int) => new Filter[Tables.Course] {
-    override def apply(row: Tables.Course): Rep[Boolean] = row.title.getOrElse("").startsWith(sample)
+  lazy val prefix = (sample: String) => new Filter[Tables.Course] {
+    override def apply(row: Tables.Course): Rep[Boolean] = row.title.getOrElse("").toLowerCase.startsWith(sample)
   }
 
-  lazy val byUniversityId = (sample: Int, count: Int) => new Filter[Tables.Course] {
-    override def apply(inst: Tables.Course): Rep[Boolean] = inst.id === sample
+  lazy val byUniversityId = (sample: Int) => new Filter[Tables.Course] {
+    override def apply(inst: Tables.Course): Rep[Boolean] = inst.universityId === sample
   }
 
-  lazy val any = (count: Int) => new Filter[Tables.Course] {
+  lazy val any = () => new Filter[Tables.Course] {
     override def apply(inst: Tables.Course): Rep[Boolean] = true
   }
 

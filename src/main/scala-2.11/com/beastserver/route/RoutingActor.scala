@@ -1,7 +1,9 @@
 package com.beastserver.route
 
 import akka.actor.{Actor, ActorRef, Props}
+import com.beastserver.boot.Config
 import com.beastserver.util.Cors
+import spray.http.MediaTypes._
 import spray.http.StatusCodes
 import spray.routing.{HttpService, Route}
 
@@ -17,9 +19,20 @@ trait Routing extends HttpService
   def addRoute(inst: Route) = {
     routes = inst :: routes
   }
+
+  def respondWithInvalidArguments(args: String*): Route = {
+    respondWithMediaType(`application/json`) {
+      complete (
+        StatusCodes.BadRequest,
+        "{\"reason\": \"One of arguments is invalid: " + args.reduce((x, y) => x + ", " + y) + ". Check http://docs.beast2.apiary.io/\"}"
+      )
+    }
+  }
 }
 
-class RoutingActor(val mediatorActor: ActorRef) extends Actor with Routing
+class RoutingActor(val mediatorActor: ActorRef) extends Actor
+with Config
+with Routing
 with PerRequestToMediator
 with UniversityRoute
 with MediaRoute

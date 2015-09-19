@@ -24,5 +24,5 @@ object Boot extends App with Config
 
   implicit val timeout = Timeout(5.seconds)
 
-  IO(Http) ? Http.Bind(service, beastHost, beastPort)
+  IO(Http) ? Http.Bind(service, BeastDefaults.beastHost, BeastDefaults.beastPort)
 }
