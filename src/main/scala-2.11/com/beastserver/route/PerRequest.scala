@@ -1,5 +1,7 @@
 package com.beastserver.route
 
+import java.util.UUID
+
 import akka.actor.{Actor, ActorRef, Props, ReceiveTimeout}
 import akka.event.Logging
 import com.beastserver.boot.Config
@@ -86,11 +88,11 @@ trait PerRequestCreator
   import PerRequest._
 
   def createPerRequest(reqContext: RequestContext, target: ActorRef, message: Messages.RestRequest) = {
-    context.actorOf(Props(classOf[WithActorRef], reqContext, target, message), "per-request")
+    context.actorOf(Props(classOf[WithActorRef], reqContext, target, message), "per-request-" + UUID.randomUUID().toString)
   }
 
   def createPerRequest(r: RequestContext, props: Props, message: Messages.RestRequest) =
-    context.actorOf(Props(classOf[WithProps], r, props, message), "per-request")
+    context.actorOf(Props(classOf[WithProps], r, props, message), "per-request-" + UUID.randomUUID().toString)
 
   //Wrappers to implement some sugar
   def perRequest(props: Props, message: Messages.RestRequest): Route =
