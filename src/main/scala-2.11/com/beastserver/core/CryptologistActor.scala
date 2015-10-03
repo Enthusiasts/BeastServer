@@ -3,8 +3,7 @@ package com.beastserver.core
 import java.nio.ByteBuffer
 import java.util.{Base64, UUID}
 
-import akka.actor.Actor
-import akka.actor.Actor.Receive
+import akka.actor.{Actor, Props}
 
 /**
  * debal on 30.08.2015.
@@ -48,4 +47,7 @@ object CryptologistActor
   case class DecodeURL(from: Seq[String])
   case class EncodedResult(content: Map[UUID, String])
   case class DecodedResult(content: Map[String, UUID])
+
+  def props(): Props =
+    Props(classOf[CryptologistActor])
 }

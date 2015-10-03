@@ -1,6 +1,7 @@
 package com.beastserver.route
 
 import akka.actor.Actor
+import com.beastserver.core.NGUniversityActor
 import spray.http.MediaTypes._
 
 /**
@@ -20,8 +21,8 @@ trait UniversityRoute {
           get {
             //Actually creates per-request actor with current request context to complete
             //Then this per-request actor sends given message to mediator-actor
-            toMediator{
-              GetUniversity(id)
+            toUniversity{
+              NGUniversityActor.GetUniversity(id)
             }
           }~
             //Update that exactly

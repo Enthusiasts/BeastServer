@@ -21,4 +21,21 @@ trait DAO[Type, Identifier, PersistType]
   def deleteAllBy(where: Seq[Filter[PersistType]]): Future[Book[Type]]
 }
 
-trait Filter[PersistType] extends ((PersistType) => Rep[Boolean])
+trait NGDAO[Identifier, PersistType, F <: NGFilter]
+{
+  def getExactlyOne(id: Identifier): Future[Option[PersistType]]
+  def getSequence(ids: Seq[Identifier]): Future[Seq[PersistType]]
+  def getSequenceBy(count: Int, where: Seq[F]): Future[Seq[PersistType]]
+
+  def insertOrUpdateOne(inst: PersistType): Future[Option[PersistType]]
+  def insertOrUpdateAll(seq: Seq[PersistType]): Future[Seq[PersistType]]
+
+  def delete(id: Identifier): Future[Option[PersistType]]
+  def deleteAll(ids: Seq[Identifier]): Future[Seq[PersistType]]
+  def deleteAllBy(where: Seq[F]): Future[Seq[PersistType]]
+}
+
+trait Filter[Type] extends ((Type) => Rep[Boolean])
+
+trait NGFilter
+trait SlickFilter[TableType] extends NGFilter with ((TableType) => Rep[Boolean])

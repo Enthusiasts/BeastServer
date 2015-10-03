@@ -109,9 +109,16 @@ trait PerRequestToMediator extends PerRequestCreator
   this: Actor =>
 
   def mediatorActor: ActorRef
+  def universityActor: ActorRef
+
   def toMediator(message: Messages.RestRequest): Route = {
     log.debug("toMediator!!!\n"+mediatorActor)
     perRequest(mediatorActor, message)
+  }
+
+  def toUniversity(message: Messages.RestRequest): Route = {
+    log.debug("toUniversity!!!\n"+universityActor)
+    perRequest(universityActor, message)
   }
 
   private val log = Logging.getLogger(this.context.system, this)

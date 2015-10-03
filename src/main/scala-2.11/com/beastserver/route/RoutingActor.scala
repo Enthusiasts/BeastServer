@@ -30,7 +30,7 @@ trait Routing extends HttpService
   }
 }
 
-class RoutingActor(val mediatorActor: ActorRef) extends Actor
+class RoutingActor(val mediatorActor: ActorRef, val universityActor: ActorRef) extends Actor
 with Config
 with Routing
 with PerRequestToMediator
@@ -51,5 +51,5 @@ with Cors
 
 object RoutingActor
 {
-  def props(mediator: ActorRef): Props = Props(classOf[RoutingActor], mediator)
+  def props(mediator: ActorRef, university: ActorRef): Props = Props(classOf[RoutingActor], mediator, university)
 }
