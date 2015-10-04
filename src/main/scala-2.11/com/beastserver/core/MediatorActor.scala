@@ -27,14 +27,13 @@ object MediatorActor
 
 class MediatorActor extends Actor with Config
 with Mediator
-with UniversityMediator
 with MediaMediator
 with CourseMediator
 {
   final lazy val db = Database.forConfig("db")
   final lazy val execContext = context.system.dispatchers.lookup("custom-dispatcher")
 
-  def receive = handleUniversity orElse handleMedia orElse handleCourse orElse stop
+  def receive = handleMedia orElse handleCourse orElse stop
 
   final def stop: Receive = {
     case MediatorActor.Stop =>
