@@ -1,7 +1,7 @@
 package com.beastserver.core
 
-import java.util.{Base64, UUID}
 import java.nio.ByteBuffer
+import java.util.{Base64, UUID}
 
 import akka.actor.Actor
 import akka.pattern.pipe
@@ -35,7 +35,7 @@ trait UniversityMediator
 
     /*case GetSequence(x: Int) =>
       if (x > 0) {
-        dao.getSequence(x) map {
+        dao.readAll(x) map {
           Sequence
         } recover{
           case any => InternalErrorFailure()
@@ -45,7 +45,7 @@ trait UniversityMediator
 
     case GetUniversity(id: Int) =>
       if (id >= 0) {
-        /*dao.getExactlyOne(id) map {
+        /*dao.readExactlyOne(id) map {
           _.fold[RestResponse](NotFoundFailure())(ExactlyOne)*/
         val uuidFuture = Future { UUID.randomUUID() }
         val urlFuture = uuidFuture map {
@@ -75,7 +75,7 @@ trait UniversityMediator
       //TODO: think about generalizing
     case GetUniversitySeq(count: Int) =>
       if (count > 0) {
-        /*dao.getExactlyOne(id) map {
+        /*dao.readExactlyOne(id) map {
           _.fold[RestResponse](NotFoundFailure())(ExactlyOne)*/
         val uuidsFuture: Future[Seq[UUID]] = Future { (0 until count) map (x => UUID.randomUUID) }
 

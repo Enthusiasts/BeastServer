@@ -1,6 +1,8 @@
 package com.beastserver.dao
 
 import com.beastserver.gen._
+import com.beastserver.util.NGPostgresCommonDAOMethods
+import slick.driver.PostgresDriver
 import slick.driver.PostgresDriver.api._
 import slick.lifted.{Compiled, Rep}
 
@@ -9,13 +11,14 @@ import scala.concurrent.{ExecutionContext, Future}
 /**
  * debal on 03.10.2015.
  */
-class NGUniversityDAO (implicit val db: Database, implicit val ex: ExecutionContext)
+class NGUniversityDAO (implicit val db: Database, implicit val exec: ExecutionContext)
   extends NGDAO[Int, Tables.UniversityRow, SlickFilter[Tables.University]]
+  with NGPostgresCommonDAOMethods[Int, Tables.UniversityRow, Tables.University]
   with NGUniversityComponent
 {
   lazy val filters = new NGUniversitiesFilters()
 
-  override def getExactlyOne(id: Int): Future[Option[Tables.UniversityRow]] = {
+  override def readExactlyOne(id: Int): Future[Option[Tables.UniversityRow]] = {
     db.run{
       for {
         uni <- matchUniversity(id).result
@@ -23,31 +26,31 @@ class NGUniversityDAO (implicit val db: Database, implicit val ex: ExecutionCont
     }
   }
 
-  override def deleteAll(ids: Seq[Int]): Future[Seq[Tables.UniversityRow]] = {
+  /*override def deleteAll(ids: Seq[Int]): Future[Seq[Tables.UniversityRow]] = {
     deleteAllBy(Seq(filters.inside(ids)))
-  }
+  }*/
 
-  override def insertOrUpdateOne(inst: Tables.UniversityRow): Future[Option[Tables.UniversityRow]] = {
+  override def createOne(inst: Tables.UniversityRow): Future[Option[Tables.UniversityRow]] = {
     db.run {
       for {
-        uni <- insertOrUpdate(Seq(inst))
+        uni <- insert(Seq(inst))
       } yield uni.headOption
     }
   }
 
-  override def insertOrUpdateAll(seq: Seq[Tables.UniversityRow]): Future[Seq[Tables.UniversityRow]] = {
+  override def createAll(seq: Seq[Tables.UniversityRow]): Future[Seq[Tables.UniversityRow]] = {
     db.run {
       for {
-        unis <- insertOrUpdate(seq)
+        unis <- insert(seq)
       } yield unis
     }
   }
 
-  override def getSequence(ids: Seq[Int]): Future[Seq[Tables.UniversityRow]] = {
-    getSequenceBy(ids.length, Seq(filters.any()))
-  }
+  /*override def readAll(ids: Seq[Int]): Future[Seq[Tables.UniversityRow]] = {
+    readAllBy(ids.length, Seq(filters.any()))
+  }*/
 
-  override def deleteAllBy(where: Seq[SlickFilter[Tables.University]]): Future[Seq[Tables.UniversityRow]] = {
+  /*override def deleteAllBy(where: Seq[SlickFilter[Tables.University]]): Future[Seq[Tables.UniversityRow]] = {
     db.run {
       val matched = matchAllBy(where)
       for {
@@ -55,7 +58,7 @@ class NGUniversityDAO (implicit val db: Database, implicit val ex: ExecutionCont
         countAffected <- matched.delete
       } yield uni
     }
-  }
+  }*/
 
   override def delete(id: Int): Future[Option[Tables.UniversityRow]] = {
     db.run {
@@ -67,14 +70,17 @@ class NGUniversityDAO (implicit val db: Database, implicit val ex: ExecutionCont
     }
   }
 
-  override def getSequenceBy(count: Int, where: Seq[SlickFilter[Tables.University]]): Future[Seq[Tables.UniversityRow]] = {
+  /*override def readAllBy(count: Int, where: Seq[SlickFilter[Tables.University]]): Future[Seq[Tables.UniversityRow]] = {
     db.run {
       val matched = matchAllBy(where) take count
       for {
         uni <- matched.result
       } yield uni
     }
-  }
+  }*/
+  override protected def inside: (Seq[Int]) => SlickFilter[Tables.University] = filters.inside
+
+  override def table: PostgresDriver.api.Query[Tables.University, Tables.UniversityRow, Seq] = Tables.University
 }
 
 sealed trait NGUniversityComponent
@@ -87,7 +93,7 @@ sealed trait NGUniversityComponent
     matchUniversityForCompile _
   }
 
-  protected def matchAllBy(count: Int, filters: Seq[SlickFilter[Tables.University]]): Query[Tables.University, Tables.UniversityRow, Seq] = {
+  /*protected def matchAllBy(count: Int, filters: Seq[SlickFilter[Tables.University]]): Query[Tables.University, Tables.UniversityRow, Seq] = {
     matchAllBy(filters) take count
   }
 
@@ -96,9 +102,9 @@ sealed trait NGUniversityComponent
     for {
       uni <- Tables.University if filters.foldLeft(filters.head(uni))((x, y) => x && y(uni))
     } yield uni
-  }
+  }*/
 
-  protected def insertOrUpdate(list: Seq[Tables.UniversityRow]) = {
+  protected def insert(list: Seq[Tables.UniversityRow]) = {
     (Tables.University returning Tables.University.map(_.id) into ((uni, newId) => uni.copy(id = newId))) ++= list
   }
 }

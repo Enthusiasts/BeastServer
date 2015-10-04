@@ -19,6 +19,8 @@ class Book[Type] (private val content: Seq[Type]) extends Config
         "fingerprint" -> fingerprint.toString
       ))
   }
+
+  def headOption = content.headOption
 }
 
 object Book

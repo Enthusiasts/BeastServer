@@ -23,12 +23,12 @@ trait DAO[Type, Identifier, PersistType]
 
 trait NGDAO[Identifier, PersistType, F <: NGFilter]
 {
-  def getExactlyOne(id: Identifier): Future[Option[PersistType]]
-  def getSequence(ids: Seq[Identifier]): Future[Seq[PersistType]]
-  def getSequenceBy(count: Int, where: Seq[F]): Future[Seq[PersistType]]
+  def readExactlyOne(id: Identifier): Future[Option[PersistType]]
+  def readAll(ids: Seq[Identifier]): Future[Seq[PersistType]]
+  def readAllBy(count: Int, where: Seq[F]): Future[Seq[PersistType]]
 
-  def insertOrUpdateOne(inst: PersistType): Future[Option[PersistType]]
-  def insertOrUpdateAll(seq: Seq[PersistType]): Future[Seq[PersistType]]
+  def createOne(inst: PersistType): Future[Option[PersistType]]
+  def createAll(seq: Seq[PersistType]): Future[Seq[PersistType]]
 
   def delete(id: Identifier): Future[Option[PersistType]]
   def deleteAll(ids: Seq[Identifier]): Future[Seq[PersistType]]

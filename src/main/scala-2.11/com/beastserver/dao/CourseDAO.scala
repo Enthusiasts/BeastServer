@@ -77,7 +77,7 @@ class CourseDAO (implicit val db: Database, implicit val ex: ExecutionContext)
       seq => Book(seq map persistent2model)
     }
   }
-  //def getSequenceBy(count: Int, where: Filter[Tables.Course]*): Future[Book[Course]] = getSequenceBy(count, where)
+  //def readAllBy(count: Int, where: Filter[Tables.Course]*): Future[Book[Course]] = readAllBy(count, where)
 
   override def deleteAllBy(where: Seq[Filter[Tables.Course]]): Future[Book[Course]] = {
     db.run {

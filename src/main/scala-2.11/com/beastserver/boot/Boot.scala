@@ -4,7 +4,7 @@ import akka.actor.ActorSystem
 import akka.io.IO
 import akka.pattern.ask
 import akka.util.Timeout
-import com.beastserver.core.{CryptologistActor, MediatorActor, NGUniversityActor}
+import com.beastserver.core.{CryptologistActor, MediatorActor, NGMediaCacheActor, NGUniversityActor}
 import com.beastserver.dao.PostgresInjection
 import com.beastserver.route.RoutingActor
 import slick.driver.PostgresDriver.api._
@@ -26,7 +26,9 @@ object Boot extends App with Config
 
   val cryptologist = system.actorOf(CryptologistActor.props(), "cryptologist")
 
-  val university = system.actorOf(NGUniversityActor.props(cryptologist, postgres), "university")
+  val mediaCache = system.actorOf(NGMediaCacheActor.props(cryptologist, postgres), "media-cache")
+
+  val university = system.actorOf(NGUniversityActor.props(cryptologist, mediaCache, postgres), "university")
 
   //Responsible for routing (suprisingly, I know)
   val service = system.actorOf(RoutingActor.props(mediator, university), "routing-service")
