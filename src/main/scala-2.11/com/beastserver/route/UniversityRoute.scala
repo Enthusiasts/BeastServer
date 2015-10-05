@@ -33,7 +33,7 @@ trait UniversityRoute extends Config
             respondWithMediaType(`text/html`) { complete {<html><body>placeholder</body></html>} }
           }
       } ~
-      path("top" /) {
+      path("top") {
         get {
           parameters("page_number".as[Int] ? 0, "page_size".as[Int] ? BeastDefaults.pageSize) {
             (page, pageSize) =>
